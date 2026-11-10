@@ -1564,7 +1564,7 @@ const DOWNL = [];
 // ограждение: сзади домика убрано, проход к лестнице
 railing(PX0, PZ1, GAP_STAIR[0], PZ1); railing(GAP_STAIR[1], PZ1, PX1, PZ1);
 railing(PX1, PZ1, PX1, HZ1 - 0.05);
-railing(PX0, PZ0, PX0, -1.75); railing(PX0, -1.05, PX0, PZ1); railing(PX0, PZ0, -1.25, PZ0);
+railing(PX0, PZ0, PX0, -1.75); railing(PX0, -1.05, PX0, PZ1); 
 gate(0.7, 0.8, root, PX0, H, -1.75, -Math.PI / 2, 0.6);
 
 // ---------- ДОМИК
@@ -1584,8 +1584,12 @@ function wall(w, holes, pos, rotY, front) {
     const g = new T.Group(); g.position.set(...pos); g.rotation.y = rotY; walls.add(g); if (front) g.userData.front = true;
     const t = kind === 'door' ? 0.08 : 0.12; [[cx, b - t / 2, ww + 2 * t, t], [cx, b + hh + t / 2, ww + 2 * t, t]].forEach(([x, y, w2, h2]) => box(w2, h2, 0.14, mat.trim, x, y, 0, g));
     [cx - ww / 2 - t / 2, cx + ww / 2 + t / 2].forEach(x => box(t, hh, 0.14, mat.trim, x, b + hh / 2, 0, g));
-    const gl = add(new T.Mesh(new T.PlaneGeometry(ww, hh), mat.glass), g); gl.position.set(cx, b + hh / 2, 0); gl.castShadow = false;
-    if (kind === 'door') { box(0.03, hh, 0.04, mat.trim, cx - ww / 2 + 0.03, b + hh / 2, 0.02, g); box(0.025, 0.3, 0.04, mat.steel, cx + ww / 2 - 0.09, 1.0, 0.07, g); }
+    if (kind !== 'door') { const gl = add(new T.Mesh(new T.PlaneGeometry(ww, hh), mat.glass), g); gl.position.set(cx, b + hh / 2, 0); gl.castShadow = false; }
+    if (kind === 'door') { // деревянная дверь: вертикальные доски, филёнки, чёрная ручка
+      const dw = matWall;
+      const nb = 6; for (let i = 0; i < nb; i++) box(ww / nb - 0.006, hh - 0.01, 0.05, dw, cx - ww / 2 + (i + 0.5) * ww / nb, b + hh / 2, 0, g);
+      box(0.025, 0.16, 0.03, mat.black, cx + ww / 2 - 0.1, 1.0, 0.05, g); box(0.11, 0.022, 0.03, mat.black, cx + ww / 2 - 0.14, 1.04, 0.075, g);
+      box(0.025, 0.16, 0.03, mat.black, cx + ww / 2 - 0.1, 1.0, -0.05, g); box(0.11, 0.022, 0.03, mat.black, cx + ww / 2 - 0.14, 1.04, -0.075, g); }
     
   });
   return m;
@@ -1669,10 +1673,6 @@ lining(HW - 0.12, [], [0, 0, -IZ], 0);
 lining(HD - 0.12, [[-WIN_R[0], WIN_R[1], WIN_R[2], WIN_R[3]]], [IX, 0, 0], -Math.PI / 2);
 lining(HD - 0.12, [[-WIN_L[0], WIN_L[1], WIN_L[2], WIN_L[3]]], [-IX, 0, 0], Math.PI / 2);
 lining(HW - 0.12, [[-DOOR[0], 0, DOOR[2], DOOR[3]], [-WIN_F[0], WIN_F[1], WIN_F[2], WIN_F[3]]], [0, 0, IZ], Math.PI, true);
-// внутренние скаты потолка из вагонки
-{ const ang = Math.atan2(RIDGE, HW / 2), sl = (HW / 2 - 0.06) / Math.cos(ang);
-  [-1, 1].forEach(sg => { const c = add(new T.Mesh(new T.PlaneGeometry(sl, HD - 0.12), matPine), interior); c.rotation.order = 'ZYX'; c.rotation.set(-Math.PI / 2, 0, -sg * ang); c.material.side = T.DoubleSide;
-    c.position.set(sg * (HW / 2 - 0.06) / 2, WALL_H + (RIDGE - 0.07) / 2 - 0.02, 0); c.userData.roofIn = true; }); }
 
 // обшивка фронтонов изнутри (вагонка)
 { const sh = (glz) => { const s2 = new T.Shape(); s2.moveTo(-IX, 0); s2.lineTo(IX, 0); s2.lineTo(0, RIDGE * IX / (HW / 2) - 0.04); s2.closePath();
@@ -1690,25 +1690,25 @@ const pine = M({ color: 0xdcb784, roughness: 0.7 });
   box(HW - 0.12, 0.16, 0.08, pine, 0, LOFT_Y - 0.03, z1 + 0.01, g);
   const led = box(HW - 0.14, 0.015, 0.015, mat.glow, 0, LOFT_Y - 0.115, z1 + 0.04, g); led.castShadow = false;
   // ограждение: брус + сетка
-  const a = -0.68, b = 1.0, y0 = LOFT_Y + 0.04, hh = 0.42;
+  const a = -0.68, b = IX - 0.03, y0 = LOFT_Y + 0.04, hh = 0.42;
   [a, (a + b) / 2, b].forEach(x => box(0.07, hh, 0.07, pine, x, y0 + hh / 2, z1, g)); box(b - a, 0.07, 0.08, pine, (a + b) / 2, y0 + hh, z1, g);
   for (let x = a + 0.08; x < b; x += 0.09) rod([x, y0 + 0.03, z1], [x, y0 + hh - 0.03, z1], 0.005, mat.ropeW, g);
   for (let y = y0 + 0.06; y < y0 + hh - 0.02; y += 0.09) rod([a, y, z1], [b, y, z1], 0.005, mat.ropeW, g);
   box(0.07, hh, 0.07, pine, -IX + 0.04, y0 + hh / 2, z1, g);
   // матрас льняной, одеяло, плед, подушки, мягкое изголовье
-  const mw = 2.0, md = 1.4, mx = 0.0, mz = (z0 + z1) / 2 - 0.02, top = LOFT_Y + 0.04;
+  const mw = 2.0, md = 1.4, mx = IX - 0.04 - mw / 2, mz = (z0 + z1) / 2 - 0.02, top = LOFT_Y + 0.04;
   box(mw + 0.06, 0.08, md + 0.06, pine, mx, top + 0.04, mz, g);
   // боковины кровати из сосны, матрас, одно цельное одеяло, плед в ногах, мягкое изголовье
   [-1, 1].forEach(sd => box(mw + 0.06, 0.22, 0.05, pine, mx, top + 0.15, mz + sd * (md / 2 + 0.03), g)); box(0.05, 0.22, md + 0.1, pine, mx - mw / 2 - 0.03, top + 0.15, mz, g);
   box(mw, 0.18, md, M({ color: 0xefe8dc, roughness: 1 }), mx, top + 0.17, mz, g);
   box(mw * 0.72, 0.06, md + 0.04, M({ color: 0xc8b496, roughness: 1 }), mx - mw * 0.14, top + 0.29, mz, g);
   box(0.42, 0.07, md + 0.06, mat.taupe, mx - mw / 2 + 0.24, top + 0.31, mz, g);
-  box(0.09, 0.62, md + 0.06, M({ color: 0xb49a7a, roughness: 1 }), mx + mw / 2 + 0.045, top + 0.3, mz, g);
+  box(0.06, 0.2, md + 0.06, M({ color: 0xb49a7a, roughness: 1 }), mx + mw / 2 + 0.01, top + 0.22, mz, g);
   // две прямоугольные подушки у изголовья
   const pil = M({ color: 0xf3ede3, roughness: 1 });
   function rbox(w, h, d, r, m, x, y, z, par) { const s = new T.Shape(); s.moveTo(-w / 2 + r, -h / 2); s.lineTo(w / 2 - r, -h / 2); s.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r); s.lineTo(w / 2, h / 2 - r); s.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2); s.lineTo(-w / 2 + r, h / 2); s.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r); s.lineTo(-w / 2, -h / 2 + r); s.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
     const geo = new T.ExtrudeGeometry(s, { depth: d - 2 * r, bevelEnabled: true, bevelSize: r * 0.9, bevelThickness: r, bevelSegments: 4, curveSegments: 6 }); geo.translate(0, 0, -(d - 2 * r) / 2); const o = add(new T.Mesh(geo, m), par); o.position.set(x, y, z); return o; }
-  [-0.33, 0.33].forEach(dz => { const p = rbox(0.6, 0.38, 0.12, 0.04, pil, mx + mw / 2 - 0.15, top + 0.4, mz + dz, g); p.rotation.y = Math.PI / 2; p.rotation.x = 0; p.rotateX(-0.28); });
+  [-0.33, 0.33].forEach(dz => { const p = rbox(0.6, 0.36, 0.1, 0.04, pil, mx + mw / 2 - 0.25, top + 0.3, mz + dz, g); p.rotation.y = Math.PI / 2; p.rotation.x = 0; p.rotateX(-1.35); });
 
   // гирлянда над кроватью
   for (let k = 0; k < 14; k++) { const x = -IX + 0.15 + k * (2 * IX - 0.3) / 13; const b2 = sph(0.016, mat.bulb, x, WALL_H + (RIDGE - 0.2) * (1 - Math.abs(x) / (HW / 2)) - 0.12, -IZ + 0.04, g); b2.castShadow = false; }
@@ -1746,10 +1746,10 @@ const pine = M({ color: 0xdcb784, roughness: 0.7 });
   const panel = M({ color: 0xece4dc, roughness: 0.8 }), lav = M({ color: 0xc9b6d2, roughness: 0.85 }), velN = M({ color: 0x9e86ae, roughness: 1 });
   box(1.95, LOFT_Y - 0.1, 0.02, panel, 0, (LOFT_Y - 0.1) / 2, 0.01, g);
   // арка с вертикальными рейками
-  const W2 = 0.46, Hs = 0.62;
+  const W2 = 0.56, Hs = 0.72;
   for (let x = -W2 + 0.02; x <= W2 - 0.02; x += 0.035) { const top = x * x < W2 * W2 ? Hs + Math.sqrt(W2 * W2 - x * x) * 0.98 : Hs; box(0.022, Math.min(top, 1.14), 0.03, panel, x, Math.min(top, 1.14) / 2, 0.035, g); }
   // круглая мягкая ниша
-  const cy = 0.6, R = 0.33;
+  const cy = 0.72, R = 0.44;
   const tube = new T.Mesh(new T.CylinderGeometry(R, R, 0.26, 48, 1, true), M({ color: 0xece4dc, roughness: 0.8, side: T.BackSide })); tube.rotation.x = Math.PI / 2; tube.position.set(0, cy, 0.17); add(tube, g);
   const ring = add(new T.Mesh(new T.TorusGeometry(R + 0.01, 0.025, 10, 48), panel), g); ring.position.set(0, cy, 0.3);
   const bk = add(new T.Mesh(new T.CircleGeometry(R - 0.02, 48), velN), g); bk.position.set(0, cy, 0.06);
@@ -1884,21 +1884,31 @@ const inL2 = new T.PointLight(0xffe0b8, 0.35, 3, 2); inL2.position.set(0.2, LOFT
   hs.forEach((h, i) => rod([x, h, zs[i]], [x, h, zs[i + 1]], 0.02, mat.steel)); }
 
 const MX0 = MAST[0] - MS / 2, MX1 = MAST[0] + MS / 2, MZ0 = MAST[1] - MS / 2, MZ1 = MAST[1] + MS / 2;
-// ---------- СКАЛОДРОМ за домиком: от земли до крыши, проход на платформу сбоку
-{ const x0 = -0.62, x1 = 0.32, z = PZ0 - 0.07, top = H + WALL_H - 0.02, w = x1 - x0;
-  for (let x = x0 + 0.06; x < x1; x += 0.117) box(0.11, top, 0.04, mat.larch, x, top / 2, z);
-  [x0, x1].forEach(x => box(0.09, top, 0.09, mat.larchD, x, top / 2, z + 0.02));
-  [0.3, H - 0.25, H + 0.9, top - 0.1].forEach(y => box(w, 0.07, 0.04, mat.larchD, (x0 + x1) / 2, y, z + 0.035));
-  const hc = [M({ color: 0x2f5fb0 }), M({ color: 0xd8443f }), M({ color: 0xe9b730 }), M({ color: 0x3b9a4a }), M({ color: 0xe07a2e })];
-  const pts = [];
-  for (let y = 0.3; y < top - 0.15; y += 0.27) { pts.push([x0 + 0.2 + rnd(-0.05, 0.05), y]); pts.push([x1 - 0.2 + rnd(-0.05, 0.05), y + 0.13]); }
-  pts.push([x0 + 0.06, H + 0.15], [x0 - 0.02, H + 0.45]);
-  pts.forEach(([x, y], i) => { const hd = sph(0.05, hc[i % 5], x, y, z - 0.035); hd.scale.set(1.3, 0.85, 0.7); });
-  // поручни-скобы для перехода на платформу
-  [H + 0.25, H + 0.75].forEach(y => { rod([-1.22, y, PZ0 - 0.02], [-1.22, y + 0.35, PZ0 - 0.02], 0.02, mat.steel); });
-  rod([x0 - 0.04, H + 0.2, z - 0.06], [x0 - 0.04, H + 0.9, z - 0.06], 0.02, mat.steel);
-  box(0.5, 0.012, 0.04, mat.glow, (x0 + x1) / 2, top - 0.04, z - 0.03).castShadow = false;
-  CLIMBD = [[x1 + 0.3, 0, z], [x1 + 0.3, top, z], String(Math.round(top * 100) * 10)];
+// ---------- СКАЛОДРОМ за домиком: снизу наклонная стенка до платформы, сверху ровная стенка с окошком-лазом
+{ const x0 = -2.4, x1 = -0.72, w = x1 - x0, xc = (x0 + x1) / 2, top = H + 1.0, run = 1.15, zt = PZ0 - 0.05, zb = zt - run;
+  const ang = Math.atan2(run, H), L = Math.hypot(run, H), bh = 0.14, ww = 0.66, wy0 = 0.18, wy1 = 0.8;
+  const hc = [M({ color: 0x2f5fb0 }), M({ color: 0xd8443f }), M({ color: 0x3b9a4a }), M({ color: 0xe9b730 })];
+  // нижняя наклонная часть: от земли до края платформы
+  const g = new T.Group(); g.position.set(xc, 0, zb); g.rotation.x = ang; root.add(g);
+  let k2 = 0; for (let y = bh / 2 + 0.01; y < L - 0.02; y += bh + 0.008) box(w, bh, 0.035, (k2++ % 2) ? mat.slat : mat.frame, 0, y, 0, g);
+  [-w / 2 - 0.04, w / 2 + 0.04].forEach(x => box(0.08, L, 0.1, mat.frame, x, L / 2, 0.03, g));
+  box(w + 0.16, 0.1, 0.12, mat.frame, 0, 0.05, 0.03, g);
+  let i = 0; for (let y = 0.3; y < L - 0.1; y += 0.24) { const n = 2 + (i % 2); for (let k = 0; k < n; k++) { const x = -w / 2 + 0.18 + (k + 0.5) * (w - 0.36) / n + rnd(-0.08, 0.08);
+    const hd = sph(0.045, hc[(i + k) % 4], x, y, -0.035, g); hd.scale.set(1.35, 0.8, 0.7); } i++; }
+  // верхняя ровная часть над платформой: вертикально, без щели
+  const u = new T.Group(); u.position.set(xc, H, zt); root.add(u); const Hu = top - H;
+  for (let y = bh / 2 + 0.005; y < Hu; y += bh + 0.008) {
+    if (y > wy0 && y < wy1) { const sw = (w - ww) / 2; box(sw, bh, 0.035, mat.slat, -w / 2 + sw / 2, y, 0, u); box(sw, bh, 0.035, mat.slat, w / 2 - sw / 2, y, 0, u); }
+    else box(w, bh, 0.035, mat.slat, 0, y, 0, u); }
+  [-ww / 2 - 0.025, ww / 2 + 0.025].forEach(x => box(0.05, wy1 - wy0, 0.06, mat.frame, x, (wy0 + wy1) / 2, -0.01, u));
+  box(ww + 0.1, 0.05, 0.06, mat.frame, 0, wy0 - 0.02, -0.01, u);
+  const arc = add(new T.Mesh(new T.TorusGeometry(ww / 2 + 0.02, 0.03, 8, 24, Math.PI), mat.frame), u); arc.position.set(0, wy1 - ww / 2 + 0.02, -0.01);
+  [-w / 2 - 0.04, w / 2 + 0.04].forEach(x => box(0.08, Hu + 0.3, 0.1, mat.frame, x, (Hu - 0.3) / 2, 0.03, u));
+  box(w + 0.16, 0.07, 0.1, mat.frame, 0, Hu + 0.02, 0.03, u);
+  [[-0.6, 0.35], [0.6, 0.4], [-0.62, 0.72], [0.58, 0.78]].forEach(([x, y], j) => { const hd = sph(0.045, hc[j % 4], x, y, -0.035, u); hd.scale.set(1.35, 0.8, 0.7); });
+  // поручни у лаза со стороны платформы
+  [-ww / 2 - 0.12, ww / 2 + 0.12].forEach(x => rod([xc + x, H + 0.05, zt + 0.12], [xc + x, H + 0.85, zt + 0.12], 0.02, mat.steel));
+  CLIMBD = [[x1 + 0.25, 0, zt], [x1 + 0.25, top, zt], '3200'];
 }
 // ---------- ЗИП: старт с левой стороны платформы (рама + калитка), финиш на треноге
 { const sx = PX0 - 0.14, zc = -1.4, topY = H + 2.6, tp = [-14.2, 3.0, -1.4];
@@ -2129,10 +2139,12 @@ const SHOTS = {
   upper: { pos: [-8.5, 6.5, 9.5], tgt: [-17.5, 2.0, -1.2] },
   back: { pos: [12.5, 5.8, -9.5], tgt: [0, 2.4, -1.5] },
   zip: { pos: L2W([1.5, 5.2, 4.0]), tgt: L2W([-8.0, 2.2, -1.4]) },
-  climb: { pos: L2W([-2.6, 3.2, -8.0]), tgt: L2W([-0.4, 2.1, -2.6]) },
+  climb: { pos: L2W([-0.2, 3.3, -8.4]), tgt: L2W([-1.55, 1.7, -3.0]) },
   inside: { pos: IN_POS, tgt: IN_TGT, cut: true },
   inside3: { pos: L2W([HCX + 1.9, H + 2.3, HCZ + 2.6]), tgt: L2W([HCX - 0.9, H + 0.45, HCZ - 0.6]), cut: true },
   inside4: { pos: L2W([HCX + 0.5, H + 0.9, HCZ + 1.25]), tgt: L2W([HCX + 0.35, H + 0.55, HCZ - 1.3]), cut: true },
+  winchk: { pos: L2W([HCX - 3.2, H + 1.4, HCZ + 1.2]), tgt: L2W([HCX - 1.4, H + 1.2, HCZ + 0.6]) },
+  winchk2: { pos: L2W([HCX + 3.4, H + 1.4, HCZ + 1.0]), tgt: L2W([HCX + 1.4, H + 1.2, HCZ + 0.4]) },
   inside2: { pos: L2W([HCX - 1.0, H + 2.6, HCZ + 3.2]), tgt: L2W([HCX + 0.4, H + 0.9, HCZ - 0.4]), cut: true },
   top: { pos: [-9, 85, 0.6], tgt: [-9, 0, 0.5] },
 };
