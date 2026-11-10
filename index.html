@@ -13,7 +13,7 @@ body.shot .ui,body.shot .bar{display:none}
 </style></head><body>
 <div id="app"></div>
 <div class="ui"><div><h1>Домик на берёзе</h1><p>Левая кнопка мыши — вращать, правая — сдвигать, колёсико — приближать</p></div></div>
-<div class="bar"><button id="inside" onclick="toggleInside()">Заглянуть внутрь</button><button id="dims" onclick="toggleDims()">Скрыть размеры</button></div>
+<div class="bar"><button id="inside" onclick="toggleInside()">Заглянуть внутрь</button><button id="dims" onclick="toggleDims()">Скрыть размеры</button><button id="night" onclick="toggleNight()">Ночь</button></div>
 <script>/**
  * @license
  * Copyright 2010-2022 Three.js Authors
@@ -1687,12 +1687,14 @@ const pine = M({ color: 0xdcb784, roughness: 0.7 });
   // матрас льняной, одеяло, плед, подушки, мягкое изголовье
   const mw = 2.0, md = 1.4, mx = IX - 0.1 - mw / 2, mz = (z0 + z1) / 2 - 0.02, top = LOFT_Y + 0.04;
   box(mw + 0.06, 0.08, md + 0.06, pine, mx, top + 0.04, mz, g);
-  box(mw, 0.18, md, mat.oat, mx, top + 0.17, mz, g);
-  const duvet = box(mw * 0.66, 0.1, md + 0.05, mat.linen, mx - mw * 0.17, top + 0.31, mz, g);
-  const throwB = box(0.45, 0.11, md + 0.07, mat.taupe, mx - mw / 2 + 0.26, top + 0.32, mz, g);
-  box(0.08, 0.5, md, mat.oat, IX - 0.05, top + 0.45, mz, g);
-  [[0.3, 0.3, mat.linen], [0.3, -0.3, mat.linen], [0.45, 0.05, mat.oat], [0.42, 0.5, mat.taupe], [0.42, -0.5, mat.boucle]].forEach(([dx, dz, m]) => {
-    const p = sph(0.18, m, mx + mw / 2 - dx, top + 0.42, mz + dz, g); p.scale.set(0.42, 0.62, 0.95); });
+  // боковины кровати из сосны, матрас, одно цельное одеяло, плед в ногах, мягкое изголовье
+  [-1, 1].forEach(sd => box(mw + 0.06, 0.22, 0.05, pine, mx, top + 0.15, mz + sd * (md / 2 + 0.03), g)); box(0.05, 0.22, md + 0.1, pine, mx - mw / 2 - 0.03, top + 0.15, mz, g);
+  box(mw, 0.18, md, M({ color: 0xefe8dc, roughness: 1 }), mx, top + 0.17, mz, g);
+  box(mw * 0.72, 0.06, md + 0.04, M({ color: 0xc8b496, roughness: 1 }), mx - mw * 0.14, top + 0.29, mz, g);
+  box(0.42, 0.07, md + 0.06, mat.taupe, mx - mw / 2 + 0.24, top + 0.31, mz, g);
+  box(0.09, 0.62, md + 0.06, M({ color: 0xb49a7a, roughness: 1 }), IX - 0.05, top + 0.4, mz, g);
+  [-0.33, 0.33].forEach(dz => { const p = sph(1, M({ color: 0xf3ede3, roughness: 1 }), IX - 0.32, top + 0.32, mz + dz, g); p.scale.set(0.2, 0.07, 0.29); });
+  [[-0.3, mat.oat], [0.3, mat.taupe], [0, mat.linen]].forEach(([dz, m], i) => { const p = sph(1, m, IX - 0.2 - i * 0.03, top + 0.47, mz + dz, g); p.scale.set(0.07, 0.17 - i * 0.02, 0.21 - i * 0.03); p.rotation.z = 0.25; });
   // гирлянда над кроватью
   for (let k = 0; k < 14; k++) { const x = -IX + 0.15 + k * (2 * IX - 0.3) / 13; const b2 = sph(0.016, mat.bulb, x, WALL_H - 0.08 - 0.06 * Math.sin(k / 13 * Math.PI), -IZ + 0.04, g); b2.castShadow = false; }
   // постеры над кроватью
@@ -1708,19 +1710,42 @@ const pine = M({ color: 0xdcb784, roughness: 0.7 });
     const hk = add(new T.Mesh(new T.TorusGeometry(0.035, 0.01, 6, 16), mat.black), g); hk.position.set(x + dx, LOFT_Y - 0.05, zt + 0.1); hk.rotation.y = Math.PI / 2; });
   for (let i = 1; i <= 5; i++) { const t = i / 6, y = yt * (1 - t), z = zt + 0.1 + (zb - zt - 0.1) * t; box(0.36, 0.03, 0.09, pineL, x, y, z, g); }
 }
-// под чердаком: длинный мягкий диван вдоль стены с подушками
-{ const g = new T.Group(); interior.add(g); const x0 = -0.72, x1 = IX - 0.03, L = x1 - x0, cx = (x0 + x1) / 2, z = -IZ + 0.34;
-  box(L, 0.12, 0.66, pine, cx, 0.06, z, g);
-  const seat = add(new T.Mesh(new T.BoxGeometry(L - 0.02, 0.22, 0.64, 1, 1, 1), mat.boucle), g); seat.position.set(cx, 0.23, z);
-  for (let i = 0; i < 3; i++) { const b = sph(0.2, mat.boucle, x0 + 0.33 + i * (L - 0.66) / 2, 0.55, -IZ + 0.12, g); b.scale.set(1.55, 1.0, 0.45); }
-  const cols = [mat.linen, mat.oat, mat.taupe, mat.boucle, mat.oat, mat.linen, mat.taupe];
-  for (let i = 0; i < 7; i++) { const p = sph(0.14, cols[i], x0 + 0.18 + i * (L - 0.36) / 6, 0.5 + (i % 2) * 0.03, -IZ + 0.27, g); p.scale.set(1, 0.95, 0.38); p.rotation.z = rnd(-0.2, 0.2); }
-  const bl = box(0.55, 0.025, 0.6, mat.taupe, x1 - 0.4, 0.35, z, g); bl.rotation.z = 0.03;
-  const led = box(L, 0.012, 0.012, mat.glow, cx, LOFT_Y - 0.11, -IZ + 0.03, g); led.castShadow = false;
+// под чердаком у левой стены: мягкий диван с подушками
+{ const g = new T.Group(); g.position.set(-IX + 0.34, 0, -0.52); g.rotation.y = Math.PI / 2; interior.add(g);
+  const L = 1.5, sofaC = M({ color: 0xcdb89a, roughness: 1 }), sofaB = M({ color: 0xbfa786, roughness: 1 });
+  box(L, 0.14, 0.66, sofaB, 0, 0.07, 0, g);
+  const ia = -L / 2 + 0.13, ib = L / 2 - 0.13, n = 2, cw = (ib - ia) / n;
+  for (let i = 0; i < n; i++) { box(cw - 0.02, 0.16, 0.52, sofaC, ia + cw * (i + 0.5), 0.22, 0.06, g); box(cw - 0.02, 0.42, 0.16, sofaC, ia + cw * (i + 0.5), 0.5, -0.24, g); }
+  [-L / 2 + 0.065, L / 2 - 0.065].forEach(x => box(0.13, 0.5, 0.66, sofaB, x, 0.25, 0, g));
+  [[-0.5, mat.linen, 0.2], [-0.2, M({ color: 0xa9785e, roughness: 1 }), -0.15], [0.2, mat.taupe, 0.1], [0.48, mat.linen, -0.2]].forEach(([x, m, r]) => {
+    const p = sph(1, m, x, 0.47, -0.12, g); p.scale.set(0.16, 0.15, 0.06); p.rotation.set(-0.25, 0, r); });
+  const bl = box(0.45, 0.03, 0.55, mat.linen, 0.35, 0.315, 0.06, g); bl.rotation.z = 0.02;
+}
+// под чердаком у задней стены: стеллаж-ячейки для игрушек
+{ const g = new T.Group(); interior.add(g); const x0 = -IX + 0.72, x1 = IX - 0.03, z0 = -IZ, d = 0.32, Ht = 1.0, cols = 4, rows = 3, cw = (x1 - x0) / cols, rh = Ht / rows;
+  const wd = mat.oak; box(x1 - x0, Ht, 0.02, M({ color: 0xcfa874, roughness: 0.8 }), (x0 + x1) / 2, Ht / 2, z0 + 0.01, g);
+  for (let i = 0; i <= cols; i++) box(0.025, Ht, d, wd, x0 + i * cw, Ht / 2, z0 + d / 2, g);
+  for (let j = 0; j <= rows; j++) box(x1 - x0, 0.025, d, wd, (x0 + x1) / 2, j * rh, z0 + d / 2, g);
+  const led = box(x1 - x0 - 0.05, 0.01, 0.01, mat.glow, (x0 + x1) / 2, Ht + 0.02, z0 + d - 0.02, g); led.castShadow = false;
+  const toyC = [M({ color: 0x9aaa86 }), M({ color: 0xc28c6a }), M({ color: 0xd8b35e }), M({ color: 0x8fa3b5 }), M({ color: 0xd9a3a6 })];
+  const cx = i => x0 + cw * (i + 0.5), cy = j => j * rh + 0.0125, zc = z0 + d / 2 + 0.02;
+  // нижний ряд: плетёные корзины
+  for (let i = 0; i < cols; i++) { const b = box(cw - 0.08, rh - 0.08, d - 0.06, i % 2 ? mat.oat : mat.taupe, cx(i), cy(0) + (rh - 0.08) / 2, zc, g); box(cw - 0.1, 0.02, d - 0.08, M({ color: 0x8a6a4c }), cx(i), cy(0) + rh - 0.075, zc, g); }
+  // средний ряд: кубики, мячик, книги, домик
+  for (let k = 0; k < 3; k++) box(0.08, 0.08, 0.08, toyC[k], cx(0) - 0.1 + k * 0.09, cy(1) + 0.05 + (k === 1 ? 0.08 : 0), zc, g);
+  sph(0.09, toyC[3], cx(1), cy(1) + 0.1, zc, g);
+  for (let k = 0; k < 5; k++) box(0.03, 0.2 + (k % 2) * 0.03, 0.18, [mat.linen, toyC[4], mat.oat, toyC[0], mat.taupe][k], cx(2) - 0.1 + k * 0.045, cy(1) + 0.11, zc, g);
+  { const hx = cx(3), hy = cy(1); box(0.16, 0.13, 0.14, mat.linen, hx, hy + 0.065, zc, g); const rf = cyl(0, 0.14, 0.1, toyC[1], hx, hy + 0.18, zc, 4, g); rf.rotation.y = Math.PI / 4; }
+  // верхний ряд: плюшевый зайка, мишка, пирамидка, кукольная кроватка
+  { const fur = M({ color: 0xf2ece2, roughness: 1 }), y = cy(2); sph(0.08, fur, cx(0), y + 0.08, zc, g).scale.set(1, 1.1, 0.9); sph(0.055, fur, cx(0), y + 0.2, zc + 0.01, g);
+    [-0.025, 0.025].forEach(dx => { const e = sph(0.02, fur, cx(0) + dx, y + 0.29, zc, g); e.scale.set(0.8, 2.6, 0.6); }); }
+  { const br = M({ color: 0xa47a56, roughness: 1 }), y = cy(2); sph(0.085, br, cx(1), y + 0.085, zc, g); sph(0.06, br, cx(1), y + 0.21, zc + 0.01, g); [-0.045, 0.045].forEach(dx => sph(0.022, br, cx(1) + dx, y + 0.26, zc, g)); }
+  for (let k = 0; k < 4; k++) cyl(0.07 - k * 0.014, 0.075 - k * 0.014, 0.04, toyC[k], cx(2), cy(2) + 0.03 + k * 0.045, zc, 16, g);
+  box(0.2, 0.06, 0.13, mat.oak, cx(3), cy(2) + 0.05, zc, g); box(0.18, 0.03, 0.11, toyC[4], cx(3), cy(2) + 0.09, zc, g);
 }
 // круглые ниши с подсветкой на левой стене
 { const g = new T.Group(); interior.add(g);
-  [[0.82, -0.75, 0.2], [1.62, -0.95, 0.17], [1.62, -0.45, 0.13]].forEach(([y, z, r]) => {
+  [[0.98, -0.52, 0.12], [1.62, -0.95, 0.17], [1.62, -0.45, 0.13]].forEach(([y, z, r]) => {
     const bk = add(new T.Mesh(new T.CircleGeometry(r, 40), M({ color: 0xcdab7c, roughness: 0.9 })), g); bk.position.set(-IX + 0.004, y, z); bk.rotation.y = Math.PI / 2;
     const tube = add(new T.Mesh(new T.CylinderGeometry(r, r, 0.1, 40, 1, true), M({ color: 0xd9b88a, roughness: 0.9, side: T.BackSide })), g); tube.rotation.z = Math.PI / 2; tube.position.set(-IX + 0.05, y, z);
     const rg = add(new T.Mesh(new T.TorusGeometry(r - 0.01, 0.007, 6, 40), mat.glow), g); rg.position.set(-IX + 0.09, y, z); rg.rotation.y = Math.PI / 2; rg.castShadow = false;
@@ -1732,9 +1757,10 @@ const pine = M({ color: 0xdcb784, roughness: 0.7 });
   box(d, 0.04, 1.2, mat.oak, IX - d / 2, 0.68, zc, g);
   box(0.04, 0.66, d - 0.04, mat.oak, IX - d / 2, 0.33, zc - 0.58, g); box(0.38, 0.16, 0.04, mat.oak, IX - 0.22, 0.58, zc + 0.58, g);
   box(0.04, 0.66, 0.04, mat.oak, IX - d + 0.03, 0.33, zc + 0.58, g);
-  [zc - 0.52, zc + 0.52].forEach(z => { for (let k = 0; k < 3; k++) { const y = 1.0 + k * 0.28; box(0.26, 0.025, 0.2, mat.oak, IX - 0.13, y, z + (z > zc ? 0.06 : -0.06), g);
-    const l = box(0.2, 0.008, 0.01, mat.glow, IX - 0.13, y - 0.017, z + (z > zc ? 0.06 : -0.06), g); l.castShadow = false;
-    for (let b = 0; b < 3; b++) box(0.15, 0.13 + b % 2 * 0.03, 0.025, [mat.linen, mat.taupe, mat.oat][b], IX - 0.12, y + 0.08, z - 0.05 + b * 0.04, g); } });
+  // полка над окном с подсветкой и книгами
+  box(0.24, 0.03, 1.3, mat.oak, IX - 0.12, 1.83, zc, g); const sl = box(0.01, 0.01, 1.2, mat.glow, IX - 0.2, 1.81, zc, g); sl.castShadow = false;
+  for (let b = 0; b < 9; b++) box(0.14, 0.15 + (b % 3) * 0.03, 0.03, [mat.linen, mat.taupe, mat.oat, M({ color: 0xa9785e })][b % 4], IX - 0.1, 1.92 + (b % 3) * 0.015, zc - 0.55 + b * 0.04, g);
+  sph(0.06, M({ color: 0x8d9d7a }), IX - 0.12, 1.91, zc + 0.35, g); cyl(0.05, 0.04, 0.08, mat.oat, IX - 0.12, 1.88, zc + 0.35, 12, g);
   cyl(0.07, 0.09, 0.03, mat.oat, IX - 0.12, 0.715, zc + 0.35, 16, g); rod([IX - 0.12, 0.72, zc + 0.35], [IX - 0.2, 1.02, zc + 0.3], 0.008, mat.black, g);
   const sh = add(new T.Mesh(new T.ConeGeometry(0.08, 0.1, 18, 1, true), mat.oat), g); sh.position.set(IX - 0.25, 1.0, zc + 0.28); sh.material.side = T.DoubleSide;
   box(0.22, 0.015, 0.16, mat.white, IX - 0.25, 0.71, zc - 0.15, g);
@@ -1750,12 +1776,12 @@ const pine = M({ color: 0xdcb784, roughness: 0.7 });
   curtain(IX - 0.06, -WIN_R[0], Math.PI / 2, WIN_R[2]); curtain(-IX + 0.06, 0.75, Math.PI / 2, WIN_L[2]);
   curtain(WIN_F[0], IZ - 0.06, 0, WIN_F[2]); interior.children[interior.children.length - 1].userData.front = true; }
 // круглый джутовый ковёр, кресло-мешок, корзина, подвесной светильник-шар
-{ const rug = add(new T.Mesh(new T.CircleGeometry(0.66, 48), M({ color: 0xd8c4a2, roughness: 1 })), interior); rug.rotation.x = -Math.PI / 2; rug.position.set(-0.05, 0.023, 0.45);
-  const r2 = add(new T.Mesh(new T.RingGeometry(0.45, 0.48, 48), M({ color: 0xbfa77f, roughness: 1 })), interior); r2.rotation.x = -Math.PI / 2; r2.position.set(-0.05, 0.025, 0.45);
-  const bb = sph(0.4, mat.boucle, -0.3, 0.27, 0.72, interior); bb.scale.set(1.05, 0.68, 1.0);
-  const bb2 = sph(0.27, mat.boucle, -0.42, 0.42, 0.85, interior); bb2.scale.set(1, 0.85, 0.8);
-  sph(0.12, mat.oat, -0.22, 0.48, 0.68, interior).scale.set(1, 0.9, 0.5);
-  cyl(0.13, 0.11, 0.26, mat.oak, 0.45, 0.13, 0.95, 16, interior); sph(0.1, mat.linen, 0.45, 0.28, 0.95, interior).scale.set(1, 0.5, 1);
+{ const rug = add(new T.Mesh(new T.CircleGeometry(0.66, 48), M({ color: 0xd8c4a2, roughness: 1 })), interior); rug.rotation.x = -Math.PI / 2; rug.position.set(0.2, 0.023, 0.35);
+  const r2 = add(new T.Mesh(new T.RingGeometry(0.45, 0.48, 48), M({ color: 0xbfa77f, roughness: 1 })), interior); r2.rotation.x = -Math.PI / 2; r2.position.set(0.2, 0.025, 0.35);
+  const bb = sph(0.4, mat.boucle, -0.32, 0.27, 0.9, interior); bb.scale.set(1.05, 0.68, 1.0);
+  const bb2 = sph(0.27, mat.boucle, -0.4, 0.42, 1.02, interior); bb2.scale.set(1, 0.85, 0.8);
+  sph(0.12, mat.oat, -0.25, 0.48, 0.82, interior).scale.set(1, 0.9, 0.5);
+  
   const cord = rod([0.1, WALL_H + 1.05, 0.45], [0.1, WALL_H + 0.55, 0.45], 0.004, mat.black, interior); cord.userData.front = true;
   const lamp = sph(0.14, mat.bulb, 0.1, WALL_H + 0.42, 0.45, interior); lamp.castShadow = false; lamp.userData.front = true;
   // постер у двери
@@ -1999,9 +2025,50 @@ const TY = U + 0.5;
   const land = new T.Mesh(new T.CircleGeometry(1.8, 40), mat.mulch); land.rotation.x = -Math.PI / 2; land.position.set(tp[0] - 2.2, 0.013, tp[2] - 0.1); S.add(land);
 }
 
+// ---------- ДЕНЬ / НОЧЬ
+const NL = new T.Group(); scene.add(NL); NL.visible = false;
+const haloS = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); const gr = g.createRadialGradient(32, 32, 1, 32, 32, 31);
+  gr.addColorStop(0, 'rgba(255,214,150,0.9)'); gr.addColorStop(0.35, 'rgba(255,190,110,0.35)'); gr.addColorStop(1, 'rgba(255,190,110,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; return t; })();
+const haloM = new T.SpriteMaterial({ map: haloS, transparent: true, depthWrite: false, blending: T.AdditiveBlending });
+function glowAt(p, s, parent) { const sp = new T.Sprite(haloM); sp.position.set(...p); sp.scale.set(s, s, 1); (parent || NL).add(sp); return sp; }
+const nightLocal = new T.Group(); root.add(nightLocal); nightLocal.visible = false;
+function pl(p, i, d, parent) { const l = new T.PointLight(0xffc37a, i, d, 2); l.position.set(...p); (parent || nightLocal).add(l); return l; }
+{ // под крышей (свесы и фронтоны), по периметру платформы, звёзды, лестница, смотровая
+  const hx = (p) => [p[0] + HCX, p[1] + H, p[2] + HCZ];
+  [-1, 1].forEach(sg => { for (let z = -HD / 2 - 0.2; z <= HD / 2 + 0.25; z += 0.25) glowAt(hx([sg * (HW / 2 + 0.23), WALL_H - 0.12, z]), 0.45, nightLocal);
+    pl(hx([sg * (HW / 2 + 0.25), WALL_H - 0.3, 0]), 0.9, 3.2); });
+  pl(hx([0, WALL_H + 0.2, HD / 2 + 0.55]), 0.8, 3); pl(hx([1.2, 1.1, HD / 2 + 0.35]), 0.35, 1.4); pl(hx([-1.28, 1.4, HD / 2 + 0.3]), 0.25, 1.2);
+  [[PX0, PX1, PZ1, 'x'], [PX0, PX1, PZ0, 'x'], [PZ0, PZ1, PX0, 'z'], [PZ0, PZ1, PX1, 'z']].forEach(([a, b, c, ax]) => {
+    for (let t = a + 0.35; t < b; t += 0.7) glowAt(ax === 'x' ? [t, H - 0.27, c] : [c, H - 0.27, t], 0.3, nightLocal); });
+  [[PX0, PZ0], [PX1, PZ0], [PX0, PZ1], [PX1, PZ1]].forEach(([x, z]) => pl([x * 0.85, H - 0.6, z * 0.85], 1.0, 3.6));
+  pl([0, H - 0.6, 0], 0.6, 3.5); pl([(GAP_STAIR[0] + GAP_STAIR[1]) / 2, H * 0.6, PZ1 + 1.6], 0.6, 2.8);
+  [[MX0, MZ0], [MX1, MZ1]].forEach(([x, z]) => pl([x, MH - 0.5, z], 0.6, 2.6));
+  pl([HCX, H + 1.6, HCZ + 0.3], 0.0, 4).userData.inside = true;
+  // окна основного дома и фонари вдоль спуска
+  [[-6.3, -1.8], [-9.5, -2.0], [-12.8, -1.6], [-13.4, 3.6], [-19.5, 4.2], [-19.5, -2.4]].forEach(([x, z]) => { const y = hgt(x, z);
+    const p = cyl(0.04, 0.05, 0.7, mat.black, x, y + 0.35, z, 10, S); const c = cyl(0.07, 0.07, 0.05, mat.glow, x, y + 0.72, z, 12, S); c.castShadow = false;
+    glowAt([x, y + 0.72, z], 0.5); pl([x, y + 0.9, z], 0.7, 3.5, NL); });
+  pl([-21.5, TY + 2.4, 6.8], 0.8, 4, NL); glowAt([-21.5, TY + 2.45, 6.8], 0.45);
+}
+const DAY = { bg: scene.background.clone(), exp: renderer.toneMappingExposure, sun: sun.intensity, sunC: sun.color.clone(), fill: fill.intensity };
+const hemi = scene.children.find(o => o.isHemisphereLight); DAY.hemi = hemi.intensity; DAY.hemiC = hemi.color.clone(); DAY.hemiG = hemi.groundColor.clone();
+let night = false;
+function setNight(v) { night = v; NL.visible = nightLocal.visible = v;
+  scene.background.set(v ? 0x141b2e : DAY.bg); scene.fog.color.set(v ? 0x141b2e : DAY.bg);
+  hemi.intensity = v ? 0.07 : DAY.hemi; hemi.color.set(v ? 0x7f8fc0 : DAY.hemiC); hemi.groundColor.set(v ? 0x1d2430 : DAY.hemiG);
+  sun.intensity = v ? 0.1 : (cut ? DAY.sun * 0.45 : DAY.sun); sun.color.set(v ? 0xa9b9ff : DAY.sunC); fill.intensity = v ? 0.04 : DAY.fill;
+  renderer.toneMappingExposure = v ? 0.8 : DAY.exp;
+  mat.glow.emissiveIntensity = v ? 6.5 : 2.4; mat.bulb.emissiveIntensity = v ? 3.5 : 1.6;
+  mat.dglass.emissive.set(v ? 0x7a5530 : 0x000000); mat.glass.emissive = mat.glass.emissive || new T.Color(); mat.glass.emissive.set(v ? 0x5a3e22 : 0x000000);
+  inL.intensity = v ? 1.8 : 0.85; inL2.intensity = v ? 0.9 : 0.35;
+  scene.traverse(o => { if (o.material && o.material.isMeshStandardMaterial) o.material.envMapIntensity = v ? 0.04 : 0.22; });
+  const b = document.getElementById('night'); if (b) b.textContent = v ? 'День' : 'Ночь'; }
+W.toggleNight = function () { setNight(!night); };
+
 // ---------- режимы
 let cut = false;
-function setCut(v) { cut = v; roof.visible = !v; house.traverse(o => { if (o.userData.front) o.visible = !v; if (o.userData.roofIn) o.visible = !v; });
+function setCut(v) { cut = v; roof.visible = !v; if (!night) { sun.intensity = v ? DAY.sun * 0.45 : DAY.sun; hemi.intensity = v ? DAY.hemi * 1.3 : DAY.hemi; } house.traverse(o => { if (o.userData.front) o.visible = !v; if (o.userData.roofIn) o.visible = !v; });
   [DIM, DIMW].forEach(G => G.children.forEach(o => { o.visible = v ? !!o.userData.inside : !o.userData.inside; })); }
 [DIM, DIMW].forEach(G => G.children.forEach(o => { if (o.userData.inside) o.visible = false; }));
 scene.traverse(o => { if (o.material && o.material.isMeshStandardMaterial) o.material.envMapIntensity = 0.22; });
@@ -2019,12 +2086,13 @@ const SHOTS = {
   back: { pos: [12.5, 5.8, -9.5], tgt: [0, 2.4, -1.5] },
   zip: { pos: [-15.0, 4.6, 3.0], tgt: [-21.5, 3.4, 6.8] },
   inside: { pos: IN_POS, tgt: IN_TGT, cut: true },
+  inside3: { pos: L2W([HCX + 1.9, H + 2.3, HCZ + 2.6]), tgt: L2W([HCX - 0.9, H + 0.45, HCZ - 0.6]), cut: true },
   inside2: { pos: L2W([HCX - 1.0, H + 2.6, HCZ + 3.2]), tgt: L2W([HCX + 0.4, H + 0.9, HCZ - 0.4]), cut: true },
   top: { pos: [-9, 85, 0.6], tgt: [-9, 0, 0.5] },
 };
 camera.position.set(...SHOTS.main.pos); controls.target.set(...SHOTS.main.tgt); controls.maxDistance = 70; camera.far = 300; camera.updateProjectionMatrix();
 if (!SHOT && camera.aspect < 1.3) { const k = Math.pow(1.45 / camera.aspect, 0.85); const off = camera.position.clone().sub(controls.target).multiplyScalar(k); camera.position.copy(controls.target).add(off); controls.maxDistance = 90; }
-if (SHOT) { const key = SHOT.replace('_nodim', ''); const s = SHOTS[key]; if (SHOT.endsWith('_nodim')) { DIM.visible = false; DIMW.visible = false; }
+if (SHOT) { const key = SHOT.replace('_nodim', '').replace('_night', ''); if (SHOT.includes('_night')) setNight(true); const s = SHOTS[key]; if (SHOT.includes('_nodim')) { DIM.visible = false; DIMW.visible = false; }
   if (s) { camera.position.set(...s.pos); controls.target.set(...s.tgt); if (s.cut) setCut(true);
     if (key === 'top') { camera.fov = 22; camera.updateProjectionMatrix(); scene.traverse(o => { if (o.userData.leaf) o.visible = false; }); roof.visible = false; scene.fog = null; controls.maxDistance = 200; } } }
 W.addEventListener('resize', () => { camera.aspect = container.clientWidth / container.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(container.clientWidth, container.clientHeight); });
