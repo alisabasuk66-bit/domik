@@ -1400,7 +1400,7 @@ const L2W = p => [-p[2], p[1], p[0]];
 const S = new T.Group(); scene.add(S);              // объекты участка в мировых координатах
 
 // ---------- материалы: тёмное тёплое дерево, графит, розово-сиреневые наличники
-const texDark = woodTex('#5a4434', [1, 1]);
+const texDark = woodTex('#78665b', [1, 1]); texDark.rotation = Math.PI / 2;
 const texShingleG = canvasTex(256, 256, (g, w, h) => {
   g.fillStyle = '#4b4d52'; g.fillRect(0, 0, w, h);
   const rows = 6, cols = 6, rh = h / rows, cw = w / cols;
@@ -1571,6 +1571,7 @@ gate(0.7, 0.8, root, PX0, H, -1.75, -Math.PI / 2, 0.6);
 const house = new T.Group(); house.position.set(HCX, H, HCZ); root.add(house);
 const walls = new T.Group(); house.add(walls);
 const matWall = M({ map: texDark, roughness: 0.7 });
+const matWallD = M({ color: 0x4a3a30, roughness: 0.7 });
 function wallShape(w, h, holes) {
   const s = new T.Shape(); s.moveTo(-w / 2, 0); s.lineTo(w / 2, 0); s.lineTo(w / 2, h); s.lineTo(-w / 2, h); s.closePath();
   holes.forEach(([cx, b, ww, hh]) => { const p = new T.Path(); p.moveTo(cx - ww / 2, b); p.lineTo(cx + ww / 2, b); p.lineTo(cx + ww / 2, b + hh); p.lineTo(cx - ww / 2, b + hh); p.closePath(); s.holes.push(p); });
@@ -1594,7 +1595,7 @@ function wall(w, holes, pos, rotY, front) {
   });
   return m;
 }
-const DOOR = [0.55, 0, 0.8, 1.8, 'door'], WIN_F = [-0.72, 0.95, 0.95, 0.6], WIN_R = [-0.6, 0.9, 1.3, 0.62], WIN_L = [0.72, 0.95, 1.05, 0.6];
+const DOOR = [0.55, 0, 0.8, 1.8, 'door'], WIN_F = [-0.65, 0.95, 0.95, 0.6], WIN_R = [0, 0.95, 1.2, 0.6], WIN_L = [0, 0.95, 1.05, 0.6];
 wall(HW, [DOOR, WIN_F], [0, 0, HD / 2], 0, true);
 wall(HW, [], [0, 0, -HD / 2], Math.PI);
 wall(HD + 0.1, [WIN_R], [HW / 2, 0, 0], Math.PI / 2);
@@ -1662,6 +1663,7 @@ const texPine = canvasTex(1024, 1024, (g, w, h) => {
       for (let x = 0; x <= w; x += 40) g.lineTo(x, y + Math.sin(x / rnd(50, 120) + k) * 2); g.stroke(); }
     g.fillStyle = 'rgba(110,70,35,0.35)'; g.fillRect(0, r * rh, w, 2); }
 });
+texPine.center.set(0.5, 0.5); texPine.rotation = Math.PI / 2;
 const matPine = M({ map: texPine, roughness: 0.85 });
 function lining(w, holes, pos, rotY, front) {
   const shape = wallShape(w, WALL_H, holes.map(([cx, b, ww, hh]) => [cx, b - 0.06, ww + 0.12, hh + 0.12]));
@@ -1781,7 +1783,7 @@ const pine = M({ color: 0xdcb784, roughness: 0.7 });
 }
 // круглые ниши с подсветкой на левой стене
 { const g = new T.Group(); interior.add(g);
-  [[1.62, -0.95, 0.17], [1.62, -0.45, 0.13]].forEach(([y, z, r]) => {
+  [[1.62, -0.95, 0.17]].forEach(([y, z, r]) => {
     const bk = add(new T.Mesh(new T.CircleGeometry(r, 40), M({ color: 0xcdab7c, roughness: 0.9 })), g); bk.position.set(-IX + 0.004, y, z); bk.rotation.y = Math.PI / 2;
     const tube = add(new T.Mesh(new T.CylinderGeometry(r, r, 0.1, 40, 1, true), M({ color: 0xd9b88a, roughness: 0.9, side: T.BackSide })), g); tube.rotation.z = Math.PI / 2; tube.position.set(-IX + 0.05, y, z);
     const rg = add(new T.Mesh(new T.TorusGeometry(r - 0.01, 0.007, 6, 40), mat.glow), g); rg.position.set(-IX + 0.09, y, z); rg.rotation.y = Math.PI / 2; rg.castShadow = false;
@@ -1809,7 +1811,7 @@ const pine = M({ color: 0xdcb784, roughness: 0.7 });
 { const curtain = (x, z, ry, w) => { const g = new T.Group(); g.position.set(x, 0, z); g.rotation.y = ry; interior.add(g);
     rod([-w / 2 - 0.22, 1.85, 0], [w / 2 + 0.22, 1.85, 0], 0.01, mat.black, g);
     [-1, 1].forEach(sd => { for (let i = 0; i < 4; i++) cyl(0.035, 0.045, 1.6, mat.linen, sd * (w / 2 + 0.05 + i * 0.05), 1.04, 0, 10, g); }); };
-  curtain(IX - 0.06, -WIN_R[0], Math.PI / 2, WIN_R[2]); curtain(-IX + 0.06, 0.75, Math.PI / 2, WIN_L[2]);
+  curtain(IX - 0.06, -WIN_R[0], Math.PI / 2, WIN_R[2]); curtain(-IX + 0.06, WIN_L[0], Math.PI / 2, WIN_L[2]);
   curtain(WIN_F[0], IZ - 0.06, 0, WIN_F[2]); interior.children[interior.children.length - 1].userData.front = true; }
 // круглый джутовый ковёр, кресло-мешок, корзина, подвесной светильник-шар
 { const rug = add(new T.Mesh(new T.CircleGeometry(0.66, 48), M({ color: 0xd8c4a2, roughness: 1 })), interior); rug.rotation.x = -Math.PI / 2; rug.position.set(0.2, 0.023, 0.35);
@@ -2026,19 +2028,19 @@ DIM.children.forEach(o => { if (o.isLineSegments && o.geometry.attributes.positi
 }
 // игровой комплекс «Ордос» 4595 × 3265, h 2900 (лиственница)
 { const g = new T.Group(); g.position.set(-17.2, U, 1.6); S.add(g);
-  const post = (x, z, h) => { cyl(0.075, 0.075, h, mat.larch, x, h / 2, z, 16, g); cyl(0.074, 0.074, 0.02, mat.larchD, x, h + 0.005, z, 16, g); };
-  const deck = (x0, x1, z0, z1, y) => { for (let x = x0 + 0.06; x < x1; x += 0.13) box(0.12, 0.035, z1 - z0, mat.larch, x, y, (z0 + z1) / 2, g); box(x1 - x0, 0.1, 0.05, mat.larchD, (x0 + x1) / 2, y - 0.07, z0, g); box(x1 - x0, 0.1, 0.05, mat.larchD, (x0 + x1) / 2, y - 0.07, z1, g); };
+  const post = (x, z, h) => { cyl(0.075, 0.075, h, matWall, x, h / 2, z, 16, g); cyl(0.074, 0.074, 0.02, matWallD, x, h + 0.005, z, 16, g); };
+  const deck = (x0, x1, z0, z1, y) => { for (let x = x0 + 0.06; x < x1; x += 0.13) box(0.12, 0.035, z1 - z0, matWall, x, y, (z0 + z1) / 2, g); box(x1 - x0, 0.1, 0.05, matWallD, (x0 + x1) / 2, y - 0.07, z0, g); box(x1 - x0, 0.1, 0.05, matWallD, (x0 + x1) / 2, y - 0.07, z1, g); };
   const picket = (xa, za, xb, zb, y0, h, arch) => { const L = Math.hypot(xb - xa, zb - za), a = Math.atan2(zb - za, xb - xa), n = Math.floor(L / 0.115);
     const pg = new T.Group(); pg.position.set(xa, y0, za); pg.rotation.y = -a; g.add(pg);
-    for (let i = 0; i < n; i++) { const u = (i + 0.5) * L / n, hh = h + (arch ? 0.12 * Math.sin(Math.PI * u / L) : 0); box(0.1, hh, 0.025, mat.larch, u, hh / 2, 0, pg); const c = cyl(0.05, 0.05, 0.025, mat.larch, u, hh, 0, 12, pg); c.rotation.x = Math.PI / 2; }
-    box(L, 0.07, 0.05, mat.larchD, L / 2, h * 0.78, 0.04, pg); box(L, 0.07, 0.05, mat.larchD, L / 2, 0.12, 0.04, pg); };
+    for (let i = 0; i < n; i++) { const u = (i + 0.5) * L / n, hh = h + (arch ? 0.12 * Math.sin(Math.PI * u / L) : 0); box(0.1, hh, 0.025, matWall, u, hh / 2, 0, pg); const c = cyl(0.05, 0.05, 0.025, matWall, u, hh, 0, 12, pg); c.rotation.x = Math.PI / 2; }
+    box(L, 0.07, 0.05, matWallD, L / 2, h * 0.78, 0.04, pg); box(L, 0.07, 0.05, matWallD, L / 2, 0.12, 0.04, pg); };
   // площадка А (ниже) с треугольной ступенью
   const yA = 0.55, yB = 0.85;
   deck(-2.3, -1.0, -0.55, 0.75, yA);
-  { const s = new T.Shape(); s.moveTo(-2.3, 0); s.lineTo(-1.0, 0); s.lineTo(-1.65, 1.05); s.closePath(); const m = add(new T.Mesh(new T.ExtrudeGeometry(s, { depth: 0.05, bevelEnabled: false }), mat.larch), g); m.rotation.x = Math.PI / 2; m.position.set(0, 0.3, -0.55); }
+  { const s = new T.Shape(); s.moveTo(-2.3, 0); s.lineTo(-1.0, 0); s.lineTo(-1.65, 1.05); s.closePath(); const m = add(new T.Mesh(new T.ExtrudeGeometry(s, { depth: 0.05, bevelEnabled: false }), matWall), g); m.rotation.x = Math.PI / 2; m.position.set(0, 0.3, -0.55); }
   post(-1.65, -1.6, 0.55);
   // мостик-пандус между площадками и площадка B
-  { const L = Math.hypot(1.1, yB - yA), an = Math.atan2(yB - yA, 1.1); for (let z = -0.45; z < 0.7; z += 0.13) { const b = box(L, 0.035, 0.12, mat.larch, -0.45, (yA + yB) / 2, z, g); b.rotation.z = an; } }
+  { const L = Math.hypot(1.1, yB - yA), an = Math.atan2(yB - yA, 1.1); for (let z = -0.45; z < 0.7; z += 0.13) { const b = box(L, 0.035, 0.12, matWall, -0.45, (yA + yB) / 2, z, g); b.rotation.z = an; } }
   deck(0.1, 1.4, -0.55, 0.75, yB);
   [[-2.3, -0.55, 1.35], [-1.0, -0.55, 1.1], [-2.3, 0.75, 2.2], [-1.0, 0.75, 1.6], [0.1, -0.55, 2.9], [1.4, -0.55, 1.6], [0.1, 0.75, 1.9], [1.4, 0.75, 2.3]].forEach(([x, z, h]) => post(x, z, h + 0.0));
   picket(-2.3, 0.75, -1.0, 0.75, yA, 0.75, true); picket(-2.3, -0.55, -2.3, 0.75, yA, 0.75, true);
@@ -2052,10 +2054,10 @@ DIM.children.forEach(o => { if (o.isLineSegments && o.geometry.attributes.positi
   pump(-2.3, 0.75, 2.2, 1); pump(0.1, -0.55, 2.9, -1);
   { const d = cyl(0.17, 0.17, 0.32, mat.black, 0.0, 0, 0, 20, g); d.rotation.z = Math.PI / 2; d.position.set(1.47, yB - 0.25, 0.1); cyl(0.09, 0.07, 0.12, mat.black, 1.47, yB + 0.25, -0.25, 16, g); rod([1.47, yB + 0.32, -0.25], [1.47, yB + 0.8, -0.25], 0.005, mat.steel, g); }
   // лесенка из брёвен сбоку
-  { const ang = Math.atan2(yB, 0.85); [-0.32, 0.32].forEach(dz => { const s = box(0.95, 0.07, 0.07, mat.larchD, 1.82, yB / 2, 0.1 + dz, g); s.rotation.z = -ang; });
-    for (let i = 0; i < 5; i++) { const t = (i + 0.5) / 5; const r = cyl(0.055, 0.055, 0.7, mat.larch, 1.42 + 0.85 * t, yB * (1 - t) + 0.05, 0.1, 12, g); r.rotation.x = Math.PI / 2; } }
+  { const ang = Math.atan2(yB, 0.85); [-0.32, 0.32].forEach(dz => { const s = box(0.95, 0.07, 0.07, matWallD, 1.82, yB / 2, 0.1 + dz, g); s.rotation.z = -ang; });
+    for (let i = 0; i < 5; i++) { const t = (i + 0.5) / 5; const r = cyl(0.055, 0.055, 0.7, matWall, 1.42 + 0.85 * t, yB * (1 - t) + 0.05, 0.1, 12, g); r.rotation.x = Math.PI / 2; } }
   // песочница-столик рядом
-  box(0.9, 0.06, 0.6, mat.larch, 2.9, 0.62, -0.6, g); [[-0.35, -0.22], [0.35, -0.22], [-0.35, 0.22], [0.35, 0.22]].forEach(([dx, dz]) => cyl(0.06, 0.06, 0.6, mat.larch, 2.9 + dx, 0.3, -0.6 + dz, 12, g));
+  box(0.9, 0.06, 0.6, matWall, 2.9, 0.62, -0.6, g); [[-0.35, -0.22], [0.35, -0.22], [-0.35, 0.22], [0.35, 0.22]].forEach(([dx, dz]) => cyl(0.06, 0.06, 0.6, matWall, 2.9 + dx, 0.3, -0.6 + dz, 12, g));
   dim([-2.3, 0.05, -1.95], [2.3, 0.05, -1.95], '4595', [0, 0, 1], DIMW); DIMW.children.slice(-2).forEach(o => o.position.add(g.position));
 }
 // переносные пуфы
